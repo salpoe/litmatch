@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% load static%}
+
+{% block title %} LitMatch | Profile {% endblock %}
+
+{% block content %}
+<div>
+  {% if user.is_authenticated %}
+  {% if user.photo %}
+  <img width="100px" src="{{ user.photo.url }}" alt="you"/>
+  {% endif %}
+  Hello, {{ user.first_name }}!
+  {% if user.prediction %}
+  Your Jungian Personality Type: {{ user.prediction.jungian_type }}
+  {% else %}
+  Click <a href="{% url 'predictions:match' %}">here</a> to get your LitMatch!
+  {% endif %}
+  {% endif %}
+</div>
+  <p>
+    {% if user.recommendation_set.all.count <= 10 %}
+    <form method="POST">
+      {% csrf_token %}
+      <h6>Add your book recommendations here (10 max)</h6>
+      {{ form.as_p }}
+      <button>Submit</button>
+    </form>
+    {% endif %}
+    <ul>
+      {% for recommendation in user.recommendation_set.all %}
+      <li>
+        {{ recommendation.title }} by {{ recommendation.author }}
+        <button style="height:21px" class='delete_book' id='{{ recommendation.pk }}'>Remove</button>
+      </li>
+
+      {% endfor %}
+    </ul>
+  </p>
+  {% endblock %}
+
+  {% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="{% static 'js/recommendations.js' %}"></script>
+  {% endblock %}

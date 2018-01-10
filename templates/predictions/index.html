@@ -1,0 +1,107 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+  <div id="status">
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script>
+  function displayPersonalityType(personalityType) {
+    var container = $('<div/>', {class: 'personality_type'});
+    var header = $('<h2/>');
+    header.text(personalityType.type + " - " + personalityType.data.title)
+    var description = $('<div/>');
+    description.text(personalityType.data.detail)
+    container.append(header)
+    container.append(description)
+
+    $('body').append(container)
+  }
+
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+
+
+  var user_id
+  var user_likes = []
+  function statusChangeCallback(response) {
+    console.log('statusChangeCallback');
+    user_id = response.authResponse.userID
+    if (response.status === 'connected') {
+      getLikes();
+    } else {
+      document.getElementById('status').innerHTML = 'Please log ' +
+      'into this app.';
+    }
+  }
+
+  function checkLoginState() {
+    FB.getLoginStatus(function(response) {
+      statusChangeCallback(response);
+    });
+  }
+
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '415074858911231',
+      cookie     : true,
+      xfbml      : true,
+      version    : 'v2.8'
+    });
+
+    FB.getLoginStatus(function(response) {
+      statusChangeCallback(response);
+    });
+
+  };
+
+  function getLikes() {
+    FB.api(user_id + '/likes', 'GET', {limit: 250}, pageCallback)
+    console.log("Hello!")
+  }
+
+  function sendLikes() {
+    $.ajax({
+      method: "POST",
+      url: window.location.href,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      data: {
+        user_likes: JSON.stringify(user_likes)
+      }
+    })
+    .done(function(data) {
+      window.location.href = '{% url "predictions:match" %}'
+    })
+    .fail(function(error) {
+      console.log(error)
+    })
+  }
+
+  function pageCallback(response) {
+    // for item in user_likes
+    if(response && response.paging) {
+      response.data.forEach(function(item) {
+        user_likes.push(item.id)
+      })
+      FB.api(response.paging.next, pageCallback)
+    } else {
+      sendLikes()
+    }
+  }
+
+  </script>
+
+  <div>
+  <h6>Link your FB to get your Jungian Personality Type and LitMatch!</h6>
+    <fb:login-button scope="public_profile,email,user_likes" onlogin="checkLoginState();">
+  </fb:login-button>
+  </div>
+{% endblock %}

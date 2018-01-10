@@ -1,0 +1,6 @@
+@import url('/static/css/bootstrap.css');
+
+#personality_details {
+  margin-top: 30px;
+  text-align: center;
+}

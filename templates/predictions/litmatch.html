@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div id="personality_details">
+  <h1>{{ prediction.jungian_type }} - {{ personality_info.title }}</h1>
+  <p>{{ personality_info.detail }}</p>
+</div>
+<h6>
+  Users with similar personality types recommend these books:
+</h6>
+{% for book in books %}
+<div>{{ book.title }} by {{ book.author }}</div>
+{% endfor %}
+{% endblock %}
